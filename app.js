@@ -3,6 +3,8 @@ const mongoose = require("mongoose");
 const express = require("express");
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
+const encrypt = require("mongoose-encryption");
+require('dotenv').config();
 
 mongoose.set('strictQuery', true);
 
@@ -16,10 +18,13 @@ mongoose.connect("mongodb://localhost:27017/userDB", {
   useNewUrlParser: true
 });
 
-const userSchema = {
+const userSchema = new mongoose.Schema({
     email: String,
     password: String
-}
+});
+
+const secret = process.env.SECRET;
+userSchema.plugin(encrypt,{secret : secret, encryptedFields: ["password"]});
 
 const User = new mongoose.model("User", userSchema);
 
@@ -42,6 +47,7 @@ app.post("/login",function(req,res){
                 console.log(err);
             }else{
                 if(foundUser){
+                    console.log(foundUser.password);
                     if(foundUser.password === passwordInput){
                         res.render("secrets");
                     }
